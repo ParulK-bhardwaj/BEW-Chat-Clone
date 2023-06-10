@@ -165,8 +165,8 @@ label {
 .message-text {
     display: inline;
 }
-
-/* .main-container {
+/* 
+.main-container {
     display: none;
     flex-direction: row;
     width: 100%;
