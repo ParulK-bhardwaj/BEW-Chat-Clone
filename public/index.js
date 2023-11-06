@@ -10,17 +10,24 @@ $(document).ready( () => {
   socket.emit('user changed channel', "General");
   //Users can change the channel by clicking on its name.
   $(document).on('click', '.channel', (e)=>{
-    let newChannel = e.target.textContent;
+    let newChannel = DOMPurify.sanitize(e.target.textContent);
     socket.emit('user changed channel', newChannel);
   });
 
   $('#create-user-btn').click((e)=>{
     e.preventDefault();
-    if($('#username-input').val().length > 0){
+    let usernameInput = $('#username-input').val();
+    // Replace <script> with sanitized equivalent
+    usernameInput = usernameInput.replace(/<script>/gi, '&lt;script&gt;');
+    // Replace ' OR 1=1; with sanitized equivalent
+    usernameInput = usernameInput.replace(/' OR 1=1;/gi, '&#39; OR 1=1;');
+    // Sanitize the username using DOMPurify
+    usernameInput = DOMPurify.sanitize(usernameInput);
+    if(usernameInput.length > 0){
       //Emit to the server the new user
-      socket.emit('new user', $('#username-input').val());
+      socket.emit('new user', usernameInput);
       // Save the current user when created
-      currentUser = $('#username-input').val();
+      currentUser = usernameInput;
       $('.username-form').remove();
       // Have the main page visible
       $('.main-container').css('display', 'flex');
@@ -29,9 +36,9 @@ $(document).ready( () => {
   $('#send-chat-btn').click((e) => {
     e.preventDefault();
     // Get the client's channel
-    let channel = $('.channel-current').text();
+    let channel = DOMPurify.sanitize($('.channel-current').text());
     // Get the message text value
-    let message = $('#chat-input').val();
+    let message = DOMPurify.sanitize($('#chat-input').val());
     // Make sure it's not empty
     if(message.length > 0){
       // Emit the message with the current user to the server
@@ -46,7 +53,7 @@ $(document).ready( () => {
   });
 
   $('#new-channel-btn').click( () => {
-    let newChannel = $('#new-channel-input').val();
+    let newChannel = DOMPurify.sanitize($('#new-channel-input').val());
 
     if(newChannel.length > 0){
       // Emit the new channel to the server
@@ -64,7 +71,7 @@ $(document).ready( () => {
   //Output the new message
   socket.on('new message', (data) => {
     //Only append the message if the user is currently in that channel
-    let currentChannel = $('.channel-current').text();
+    let currentChannel = DOMPurify.sanitize($('.channel-current').text());
     if(currentChannel == data.channel) {
       $('.message-container').append(`
         <div class="message">
